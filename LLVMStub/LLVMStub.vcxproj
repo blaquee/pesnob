@@ -150,7 +150,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="macros.h" />
-    <ClInclude Include="minicrt.h" />
     <ClInclude Include="stub.h" />
     <ClInclude Include="typedefs.h" />
   </ItemGroup>

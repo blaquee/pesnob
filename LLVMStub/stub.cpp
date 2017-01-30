@@ -1,21 +1,12 @@
 #include <Windows.h>
+#include <winternl.h>
+#include <intrin.h>
 #include "typedefs.h"
 #include "stub.h"
 
 #pragma section(".stub", read, execute, write)
-#define STUBFUNC __declspec(allocate(".stub"))
 
-typedef struct _config
-{
-	//pVirtualProtect pProtect;
-	//pVirtualAlloc pMemAlloc;
-	UINT magic;
-	DWORD baseAddress;
-	DWORD oldEP;
-	DWORD _nextStub;
-}config;
-
-__declspec(allocate(".stub"))
+#pragma data_seg(".studb")
 config stub_config = {
 	0x11223344,
 	0x0BADF00D,
@@ -24,16 +15,13 @@ config stub_config = {
 };
 
 __declspec(allocate(".stub"))
-DWORD baseAddress = 0x0BADF00D;
-
-__declspec(allocate(".stub"))
 DWORD oldEP = 0x0BADF00D;
 
 __declspec(allocate(".stub"))
 DWORD h_kernel32 = NULL;
 
 extern "C" {
-#pragma code_seg(".stub")
+#pragma code_seg(".crt")
 	char* __strcpy(char* dst, const char* src)
 	{
 		if (!dst || !src)
@@ -63,12 +51,16 @@ extern "C" {
 				return 0;
 		return 0;
 	}
+#pragma code_seg(".stub$a")
 	bool do_debugger_check()
 	{
-		bool res = true;
-		return res;
+		//x86 for now
+		PPEB pPeb = (PPEB)__readfsdword(0x30);
+		if (pPeb->BeingDebugged == 1)
+			return true;
+		return false;
 	}
-
+#pragma code_seg(".stub$b")
 	void* stub_gpa(HMODULE base, const char* name)
 	{
 		PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)base;
@@ -119,5 +111,23 @@ extern "C" {
 		return 0;
 	}
 
+#pragma code_seg(".entry")
+	void entrypoint(void* param, void* out)
+	{
+		//param is configuration
+		_config *myconf = (_config*)param;
+		//this should:
+		// (a) find location in memory
+		// (b) populate any pointers
+		// (c) run stub code
+		// (d) return to loader or call next stub entrypoint
+		if (do_debugger_check())
+		{
+			// fill in out param, I dont like this method. we should find a solution to pass information
+			results *res = (results*)out;
+			res->continuable = false;
+			res->res_value = 0;
+		}
+	}
 
 }
