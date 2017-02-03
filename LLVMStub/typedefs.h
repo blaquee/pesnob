@@ -7,10 +7,15 @@ typedef FARPROC(WINAPI *pGetProcAddress)(HMODULE hModule, LPCSTR lpProcName);
 
 typedef LPVOID(WINAPI *pVirtualAlloc)(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
 typedef BOOL(WINAPI *pVirtualProtect)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
-typedef BOOL(WINAPI *pIsDebugger)(void); //not needed
+typedef void(__stdcall *stub_entry)(void* param, void* out);
+
+
 
 //stub specific
-typedef void(__stdcall *stub_entry)(void* param, void* out);
+extern "C" {
+	extern void entrypoint(void* param, void* out);
+	extern bool do_debugger_check();
+}
 
 typedef struct _results
 {
@@ -18,4 +23,15 @@ typedef struct _results
 	bool continuable;
 	char unused[2];
 }results;
+
+
+struct pe_file_info
+{
+	short num_sections;
+	DWORD size_packed;
+	DWORD size_unpacked;
+
+	pLoadLibraryA loadlib;
+	pGetProcAddress getProcAddr;
+};
 #endif // 

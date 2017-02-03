@@ -6,52 +6,38 @@
 
 #pragma section(".stub", read, execute, write)
 
-#pragma data_seg(".studb")
-config stub_config = {
-	0x11223344,
-	0x0BADF00D,
-	0x0BADF00D,
-	0x00000000,
-};
-
-__declspec(allocate(".stub"))
-DWORD oldEP = 0x0BADF00D;
-
-__declspec(allocate(".stub"))
-DWORD h_kernel32 = NULL;
 
 extern "C" {
-#pragma code_seg(".crt")
-	char* __strcpy(char* dst, const char* src)
+int __strlen(const char* str);
+int __strncmp(const char* s1, const char* s2, size_t n);
+
+
+#pragma code_seg(".stub$b")
+char bootstrap[256] = { 0 };
+	void entrypoint(void* param, void* out)
 	{
-		if (!dst || !src)
-			return nullptr;
-		char* temp = dst;
-		while ((*dst++ == *src++) != '\0')
-			;
-		return temp;
+		//param is configuration
+		config *myconf = (config*)param;
+		results *res = (results*)out;
+		//this should:
+		// (a) find location in memory
+		// (b) populate any pointers
+		// (c) run stub code
+		// (d) return to loader or call next stub entrypoint
+		if (do_debugger_check())
+		{
+			// fill in out param, I dont like this method. we should find a solution to pass information
+
+			res->continuable = false;
+			res->res_value = 0;
+		}
+		else
+		{
+			res->continuable = true;
+			res->res_value = 1;
+		}
 	}
-	int __strlen(const char* str)
-	{
-		const char* tmp;
-		if (!str)
-			return -1;
-		tmp = str;
-		int count = 0;
-		while (tmp++ != '\0')
-			count++;
-		return count;
-	}
-	int __strncmp(const char* s1, const char* s2, size_t n)
-	{
-		for (; n > 0; s1++, s2++, n--)
-			if (*s1 != *s2)
-				return((*(unsigned char*)s1 < *(unsigned char*)s2) ? -1 : 1);
-			else if (*s1 == '\0')
-				return 0;
-		return 0;
-	}
-#pragma code_seg(".stub$a")
+
 	bool do_debugger_check()
 	{
 		//x86 for now
@@ -60,7 +46,7 @@ extern "C" {
 			return true;
 		return false;
 	}
-#pragma code_seg(".stub$b")
+
 	void* stub_gpa(HMODULE base, const char* name)
 	{
 		PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)base;
@@ -83,25 +69,25 @@ extern "C" {
 		PDWORD funcNames = (PDWORD)(cbase + exports->AddressOfNames);
 
 		//ordinal lookup?
-		if(HIWORD(name) == 0)
+		if (HIWORD(name) == 0)
 		{
-			for(size_t i = 0; i < exports->NumberOfNames; i++)
+			for (size_t i = 0; i < exports->NumberOfNames; i++)
 			{
-				if(ordinals[i] == LOWORD(name))
+				if (ordinals[i] == LOWORD(name))
 				{
 					return (void*)(cbase + funcs[i]);
 				}
 			}
 		}
-		for(size_t i = 0; i < exports->NumberOfFunctions; i++)
+		for (size_t i = 0; i < exports->NumberOfFunctions; i++)
 		{
 			UINT_PTR entry_point = funcs[i];
-			if(entry_point)
+			if (entry_point)
 			{
 				//enumerate names
-				for(size_t j = 0; j < exports->NumberOfNames; j++)
+				for (size_t j = 0; j < exports->NumberOfNames; j++)
 				{
-					if(ordinals[j] == i && __strncmp(name, (const char*)(funcNames[j]+cbase), __strlen(name)) == 0)
+					if (ordinals[j] == i && __strncmp(name, (const char*)(funcNames[j] + cbase), __strlen(name)) == 0)
 					{
 						return (void*)(cbase + entry_point);
 					}
@@ -111,23 +97,72 @@ extern "C" {
 		return 0;
 	}
 
-#pragma code_seg(".entry")
-	void entrypoint(void* param, void* out)
+#pragma code_seg(".crt")
+	void * __cdecl _memset(
+		void *dst,
+		int val,
+		unsigned int count
+	)
 	{
-		//param is configuration
-		_config *myconf = (_config*)param;
-		//this should:
-		// (a) find location in memory
-		// (b) populate any pointers
-		// (c) run stub code
-		// (d) return to loader or call next stub entrypoint
-		if (do_debugger_check())
-		{
-			// fill in out param, I dont like this method. we should find a solution to pass information
-			results *res = (results*)out;
-			res->continuable = false;
-			res->res_value = 0;
+		void *start = dst;
+
+		while (count--) {
+			*(char *)dst = (char)val;
+			dst = (char *)dst + 1;
 		}
+
+		return(start);
+	}
+
+	void * __cdecl _memcpy(
+		void * dst,
+		const void * src,
+		unsigned int count
+	)
+	{
+		void * ret = dst;
+
+		/*
+		* copy from lower addresses to higher addresses
+		*/
+		while (count--) {
+			*(char *)dst = *(char *)src;
+			dst = (char *)dst + 1;
+			src = (char *)src + 1;
+		}
+
+		return(ret);
+	}
+
+	char* __strcpy(char* dst, const char* src)
+	{
+		if (!dst || !src)
+			return nullptr;
+		char* temp = dst;
+		while ((*dst++ = *src++) != '\0')
+			;
+		return temp;
+	}
+
+	int __strlen(const char* str)
+	{
+		const char* tmp;
+		if (!str)
+			return -1;
+		tmp = str;
+		int count = 0;
+		while (tmp++ != '\0')
+			count++;
+		return count;
+	}
+	int __strncmp(const char* s1, const char* s2, size_t n)
+	{
+		for (; n > 0; s1++, s2++, n--)
+			if (*s1 != *s2)
+				return((*(unsigned char*)s1 < *(unsigned char*)s2) ? -1 : 1);
+			else if (*s1 == '\0')
+				return 0;
+		return 0;
 	}
 
 }

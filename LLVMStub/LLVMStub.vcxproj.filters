@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\pelib">
+      <UniqueIdentifier>{f781e7c9-576f-4114-a144-9e43d9fcf798}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -20,6 +23,117 @@
     </ClCompile>
     <ClCompile Include="stub.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\entropy.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\file_version_info.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\message_table.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_base.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_bound_import.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_checksum.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_debug.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_directory.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_dotnet.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_exception.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_exception_directory.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_exports.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_factory.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_imports.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_load_config.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_properties.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_properties_generic.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_rebuilder.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_relocations.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_resource_manager.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_resource_viewer.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_resources.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_rich_data.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_section.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\pe_tls.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_bitmap_reader.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_bitmap_writer.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_cursor_icon_reader.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_cursor_icon_writer.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_data_info.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_message_list_reader.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_string_table_reader.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_version_info_reader.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\resource_version_info_writer.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\utils.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\version_info_editor.cpp">
+      <Filter>Header Files\pelib</Filter>
+    </ClCompile>
+    <ClCompile Include="pe_lib\version_info_viewer.cpp">
+      <Filter>Header Files\pelib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -29,7 +143,136 @@
     <ClInclude Include="stub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="macros.h">
+    <ClInclude Include="pe_lib\entropy.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\file_version_info.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\message_table.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_base.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_bliss.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_bliss_resources.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_bound_import.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_checksum.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_debug.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_directory.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_dotnet.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_exception.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_exception_directory.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_exports.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_factory.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_imports.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_load_config.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_properties.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_properties_generic.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_rebuilder.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_relocations.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_resource_manager.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_resource_viewer.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_resources.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_rich_data.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_section.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_structures.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\pe_tls.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_bitmap_reader.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_bitmap_writer.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_cursor_icon_reader.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_cursor_icon_writer.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_data_info.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_internal.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_message_list_reader.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_string_table_reader.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_version_info_reader.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\resource_version_info_writer.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\stdint_defs.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\utils.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\version_info_editor.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\version_info_types.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="pe_lib\version_info_viewer.h">
+      <Filter>Header Files\pelib</Filter>
+    </ClInclude>
+    <ClInclude Include="helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
