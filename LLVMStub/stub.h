@@ -3,6 +3,11 @@
 
 extern DWORD oldEP;
 
+
+#define DEFAULT_VAL_BYTE 0xF
+#define DEFAULT_VAL_WORD 0xFFFF
+#define DEFAULT_VAL_DWORD 0xFFFFFFFF
+
 #pragma pack(push,1)
 typedef struct _config
 {

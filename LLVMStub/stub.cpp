@@ -1,23 +1,38 @@
 #include <Windows.h>
 #include <winternl.h>
 #include <intrin.h>
-#include "typedefs.h"
+#include "common.h"
 #include "stub.h"
 
 #pragma section(".stub", read, execute, write)
 
 
 extern "C" {
+//forward declares
 int __strlen(const char* str);
 int __strncmp(const char* s1, const char* s2, size_t n);
+char* __strcpy(char* dst, const char* src);
+void * __cdecl _memset(void *dst, int val, unsigned int count);
+void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
 
 
-#pragma code_seg(".stub$b")
-char bootstrap[256] = { 0 };
+#pragma code_seg(".stub$a")
+	/*void __cdecl bootstrap()
+	{
+		char data[256];
+		data[0] = 0;
+		data[1] = 1;
+		data[2] = 2;
+		asm(".intel_syntax noprefix");
+		asm("mov [data + 5], 4");
+		//unsigned int original_oep;
+		//unsigned int base_addr;
+	}*/
+
 	void entrypoint(void* param, void* out)
 	{
-		//param is configuration
-		config *myconf = (config*)param;
+		void* addr = (void*)entrypoint;
+		pe_file_info *myconf = (pe_file_info*)param;
 		results *res = (results*)out;
 		//this should:
 		// (a) find location in memory
@@ -96,8 +111,6 @@ char bootstrap[256] = { 0 };
 		}
 		return 0;
 	}
-
-#pragma code_seg(".crt")
 	void * __cdecl _memset(
 		void *dst,
 		int val,

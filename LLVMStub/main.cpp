@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-#include "typedefs.h"
+#include "common.h"
 #include "stub.h"
 #include "helper.h"
 #include "pe_lib\pe_bliss.h"
@@ -130,6 +130,22 @@ int main(int argc, char** argv)
 		section &added_section = image.add_section(new_section);
 		image.set_section_virtual_size(added_section, 0x1000);
 
+		const auto& sections = image.get_image_sections();
+		if (sections.empty())
+		{
+			cout << "No sections to compress" << endl;
+			return 0;
+		}
+
+		pe_file_info peinfo = { 0 };
+		peinfo.num_sections = image.get_number_of_sections();
+		peinfo.original_ep = image.get_ep();
+		peinfo.total_virtual_size_of_sections = image.get_size_of_image();
+
+		string packed_section_data;
+		{
+			packed_section_data.resize(sections.size() * sizeof(packed_section));
+		}
 		//output new file
 		std::string base_file_name(test_file);
 		std::string::size_type slash_pos;
@@ -150,17 +166,6 @@ int main(int argc, char** argv)
 	{
 		cout << "Exception: "<< e.what() << endl;
 	}
-	/*
-	stub_entry entry = (stub_entry)entrypoint;
-	if (entry)
-	{
-		entry((void*)&stub1, (void*)out);
-	}
-	if (!out->continuable)
-	{
-		cout << "Stub returned fail: " << out->res_value << endl;
-	}
-	*/
 	getchar();
 	return 0;
 }

@@ -233,7 +233,7 @@
     <ClInclude Include="pe_lib\version_info_types.h" />
     <ClInclude Include="pe_lib\version_info_viewer.h" />
     <ClInclude Include="stub.h" />
-    <ClInclude Include="typedefs.h" />
+    <ClInclude Include="common.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
