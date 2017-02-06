@@ -119,7 +119,8 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <AssemblerOutput>AssemblyCode</AssemblerOutput>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,6 +148,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="compress\lz-xz.c" />
+    <ClCompile Include="compress\pithy.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pe_lib\entropy.cpp" />
     <ClCompile Include="pe_lib\file_version_info.cpp" />
@@ -188,6 +191,7 @@
     <ClCompile Include="stub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="compress\pithy.h" />
     <ClInclude Include="helper.h" />
     <ClInclude Include="pe_lib\entropy.h" />
     <ClInclude Include="pe_lib\file_version_info.h" />

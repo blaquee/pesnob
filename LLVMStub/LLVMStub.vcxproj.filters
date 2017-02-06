@@ -135,6 +135,12 @@
     <ClCompile Include="pe_lib\version_info_viewer.cpp">
       <Filter>Header Files\pelib</Filter>
     </ClCompile>
+    <ClCompile Include="compress\lz-xz.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="compress\pithy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stub.h">
@@ -273,6 +279,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="compress\pithy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

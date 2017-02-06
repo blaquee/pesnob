@@ -13,14 +13,11 @@
 #include "stub.h"
 #include "helper.h"
 #include "pe_lib\pe_bliss.h"
+#include "compress\pithy.h"
 
 using namespace std;
 using namespace pe_bliss;
 
-PIMAGE_SECTION_HEADER get_stub_binary(char* filePath);
-PIMAGE_SECTION_HEADER find_stub(PIMAGE_DOS_HEADER dos, PIMAGE_NT_HEADERS nt, int magic);
-DWORD get_original_entrypoint();
-DWORD get_stub_entrypoint_offset();
 
 DWORD get_original_entrypoint()
 {
@@ -120,15 +117,7 @@ int main(int argc, char** argv)
 			cout << "Unsupported File" << endl;
 			return 0;
 		}
-		//create the packer section
-		section new_section;
-		new_section.readable(true).writeable(true);
-		new_section.set_name("glpack");
-		new_section.set_raw_data(new_stub);
-		new_section.set_size_of_raw_data(align_up(new_stub.size(), image.get_section_alignment()));
 
-		section &added_section = image.add_section(new_section);
-		image.set_section_virtual_size(added_section, 0x1000);
 
 		const auto& sections = image.get_image_sections();
 		if (sections.empty())
@@ -136,16 +125,108 @@ int main(int argc, char** argv)
 			cout << "No sections to compress" << endl;
 			return 0;
 		}
+		//create the packer section
+		section packer_section;
+		packer_section.readable(true).writeable(true).executable(true);
+		packer_section.set_name("glpack");
+		packer_section.set_raw_data(new_stub);
+		packer_section.set_size_of_raw_data(align_up(new_stub.size(), image.get_section_alignment()));
+
+		//section &added_section_stub = image.add_section(packer_section);
+		//image.set_section_virtual_size(added_section_stub, 0x1000);
 
 		pe_file_info peinfo = { 0 };
 		peinfo.num_sections = image.get_number_of_sections();
 		peinfo.original_ep = image.get_ep();
 		peinfo.total_virtual_size_of_sections = image.get_size_of_image();
 
-		string packed_section_data;
+		string packed_section_info;
 		{
-			packed_section_data.resize(sections.size() * sizeof(packed_section));
+			packed_section_info.resize(sections.size() * sizeof(packed_section));
+
+			//section raw data
+			string raw_data;
+			unsigned int cur_section = 0;
+			for (auto it = sections.begin(); it != sections.end(); ++it, ++cur_section)
+			{
+				const section &s = *it;
+				{
+					//building each section structure
+					packed_section& info =
+						reinterpret_cast<packed_section&>(packed_section_info[cur_section * sizeof(packed_section)]);
+
+					info.characteristics = s.get_characteristics();
+					info.pointer_to_raw_data = s.get_pointer_to_raw_data();
+					info.size_of_raw_data = s.get_size_of_raw_data();
+					info.virtual_address = s.get_virtual_address();
+					info.virtual_size = s.get_virtual_size();
+					memset(info.name, 0, sizeof(info.name));
+					memcpy(info.name, s.get_name().c_str(), s.get_name().length());
+				}
+				if (s.get_raw_data().empty())
+					continue;
+				raw_data += s.get_raw_data();
+				}
+			if(raw_data.empty())
+			{
+				cout << "Empty sections" << endl;
+				return 0;
+			}
+			packed_section_info += raw_data;
 		}
+
+		section packed_;
+		packed_.set_name(".packd");
+		packed_.readable(true).writeable(true).executable(true);
+		string &out_buf = packed_.get_raw_data();
+
+
+
+		peinfo.size_unpacked = packed_section_info.size();
+		//char* buf_out = malloc(packed_section_info.size()*2);
+		size_t compressed_size;
+
+		cout << "Packing sections" << endl;
+		pithy_Compress(packed_section_info.data(), packed_section_info.size(), &out_buf[0], compressed_size, 1);
+
+		if (compressed_size == 0)
+		{
+			cout << "Encoding failed " << endl;
+			return 0;
+		}
+
+		//store size of packed data
+		peinfo.size_packed = compressed_size;
+		//string encoded_buffer(buf_out, new_size);
+
+		//add the packed file structure to the beginning of encoded buffer
+		out_buf = string(reinterpret_cast<const char*>(&peinfo), sizeof(peinfo)) + out_buf;
+		//out_buf = encoded_buffer;
+		//calculating enough space for the encoded section (when unpacked)
+		{
+			cout << "Recreating the executable" << endl;
+			const section& first_section = image.get_image_sections().front();
+			packed_.set_virtual_address(first_section.get_virtual_address());
+
+			const section& last_section = image.get_image_sections().back();
+			DWORD total_virtual_size = last_section.get_virtual_address() +
+				last_section.get_aligned_virtual_size(last_section.get_virtual_size()) -
+				first_section.get_virtual_address();
+
+			// delete current sections
+			image.get_image_sections().clear();
+
+			image.realign_file(0x200);
+			
+			//add the sections
+			cout << "Adding encoded section " << endl;
+			section &encoded_section = image.add_section(packed_);
+			image.set_section_virtual_size(encoded_section, total_virtual_size);
+			cout << "Adding unpacker section" << endl;
+			section &packer_s = image.add_section(packer_section);
+			
+		}
+
 		//output new file
 		std::string base_file_name(test_file);
 		std::string::size_type slash_pos;
