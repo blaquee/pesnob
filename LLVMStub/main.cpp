@@ -9,12 +9,12 @@
 #include <string>
 #include <sstream>
 
+#include "pe_lib/pe_bliss.h"
 #include "common.h"
-#include "stub.h"
 #include "helper.h"
-#include "pe_lib\pe_bliss.h"
+
 //#include "compress\pithy.h"
-#include "compress\lzz.h"
+#include "compress/lzz.h"
 
 using namespace std;
 using namespace pe_bliss;
@@ -29,7 +29,7 @@ DWORD get_original_entrypoint()
 }
 
 // Copy the stub sections, order matters
-char* create_stub_blob(const char** section_names, size_t num_sections, size_t *out_size)
+char* create_stub_blob(DWORD base_addr, const char** section_names, size_t num_sections, size_t *out_size)
 {
 	if (num_sections == 0)
 		return 0;
@@ -52,7 +52,7 @@ char* create_stub_blob(const char** section_names, size_t num_sections, size_t *
 		{
 			if (strcmp(section_names[j], (char*)sec[i].Name) == 0)
 			{
-				cout << "Section Address: "<< hex << (DWORD)thisMod + sec[i].VirtualAddress << endl;
+				cout << "Section Address: " << hex << (DWORD)thisMod + sec[i].VirtualAddress << endl;
 				char *data = (char*)(DWORD)thisMod + sec[i].VirtualAddress;
 				//ensure we have the space
 				stub_data.resize(sec[i].SizeOfRawData);
@@ -63,7 +63,7 @@ char* create_stub_blob(const char** section_names, size_t num_sections, size_t *
 				stub_data.clear();
 			}
 		}
-		
+
 	}
 	cout << "Total Stub Size: " << ss.str().size() << endl;
 	char* ret = (char*)malloc(ss.str().size());
@@ -74,31 +74,29 @@ char* create_stub_blob(const char** section_names, size_t num_sections, size_t *
 
 int main(int argc, char** argv)
 {
+	string stub_exe = "E:\\Coding\\Stubber\\bin\\stub.dll";
 	//Stub sections we want to extract
-	const char *stubs [] = {
+	const char *stubs[] = {
 		".stub",
 		".crt"
 	};
 
 	//extract stub data from packer body
 	size_t stub_size;
-	char *ret = create_stub_blob(stubs, 2, &stub_size);
+	char *ret = create_stub_blob(0, stubs, 2, &stub_size);
 	if (stub_size == 0)
 	{
 		cout << "Couldn't find stub data!" << endl;
 		return 0;
 	}
-	string new_stub(ret,stub_size);
+	string new_stub(ret, stub_size);
 	free(ret);
 
-	config stub1{
-		0
-	};
 
 	results *out = (results*)malloc(sizeof(results));
 	memset(out, 0, sizeof(results));
 
-	char test_file[] = { "C:\\git_code\\stubber\\Release\\SmallExe.exe" };
+	char test_file[] = { "E:\\Coding\\Stubber\\bin\\SmallExe.exe" };
 
 	ifstream target(test_file, std::ios::in | std::ios::binary);
 	if (!target)
@@ -107,7 +105,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	try 
+	try
 	{
 		// parse the pe file
 		cout << "Parsing PE File" << endl;
@@ -167,8 +165,8 @@ int main(int argc, char** argv)
 				if (s.get_raw_data().empty())
 					continue;
 				raw_data += s.get_raw_data();
-				}
-			if(raw_data.empty())
+			}
+			if (raw_data.empty())
 			{
 				cout << "Empty sections" << endl;
 				return 0;
@@ -176,11 +174,11 @@ int main(int argc, char** argv)
 			packed_section_info += raw_data;
 		}
 
+		// section for original files (compressed)
 		section packed_;
 		packed_.set_name(".packd");
 		packed_.readable(true).writeable(true).executable(true);
 		string &out_buf = packed_.get_raw_data();
-
 
 
 		peinfo.size_unpacked = packed_section_info.size();
@@ -200,9 +198,12 @@ int main(int argc, char** argv)
 		//store size of packed data
 		peinfo.size_packed = compressed_size;
 		//string encoded_buffer(buf_out, new_size);
-
+		results res = { 0 };
 		//add the packed file structure to the beginning of encoded buffer
-		out_buf = string(reinterpret_cast<const char*>(&peinfo), sizeof(peinfo)) + out_buf;
+		string peinfo_buf(reinterpret_cast<const char*>(&peinfo), sizeof(peinfo));
+		string resinfo_buf(reinterpret_cast<const char*>(&res), sizeof(results));
+		out_buf = peinfo_buf + resinfo_buf + out_buf;
+
 		//out_buf = encoded_buffer;
 		//calculating enough space for the encoded section (when unpacked)
 		{
@@ -219,14 +220,14 @@ int main(int argc, char** argv)
 			image.get_image_sections().clear();
 
 			image.realign_file(0x200);
-			
+
 			//add the sections
 			cout << "Adding encoded section " << endl;
 			section &encoded_section = image.add_section(packed_);
 			image.set_section_virtual_size(encoded_section, total_virtual_size);
 			cout << "Adding unpacker section" << endl;
 			section &packer_s = image.add_section(packer_section);
-			
+
 		}
 
 		//output new file
@@ -247,7 +248,7 @@ int main(int argc, char** argv)
 	}
 	catch (const pe_exception &e)
 	{
-		cout << "Exception: "<< e.what() << endl;
+		cout << "Exception: " << e.what() << endl;
 	}
 	getchar();
 	return 0;

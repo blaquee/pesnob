@@ -1,33 +1,73 @@
 #include <Windows.h>
 #include <winternl.h>
 #include <intrin.h>
-#include "common.h"
-#include "stub.h"
+#include "../LLVMStub/common.h"
 
 #pragma section(".stub", read, execute, write)
 
-
 extern "C" {
-//forward declares
-int __strlen(const char* str);
-int __strncmp(const char* s1, const char* s2, size_t n);
-char* __strcpy(char* dst, const char* src);
-void * __cdecl _memset(void *dst, int val, unsigned int count);
-void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
+	//forward declares
+	int __strlen(const char* str);
+	int __strncmp(const char* s1, const char* s2, size_t n);
+	char* __strcpy(char* dst, const char* src);
+	void * __cdecl _memset(void *dst, int val, unsigned int count);
+	void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
+	void entrypoint(void* param, void* out);
+	bool do_debugger_check();
 
 
 #pragma code_seg(".stub$a")
-	/*void __cdecl bootstrap()
+	void bootstrap()
 	{
-		char data[256];
-		data[0] = 0;
-		data[1] = 1;
-		data[2] = 2;
-		asm(".intel_syntax noprefix");
-		asm("mov [data + 5], 4");
+		void* location = bootstrap;
+		void* res = (void*)((int*)location - sizeof(results));
+		void* conf = (void*)((int*)res - sizeof(pe_file_info));
+
+		/*
+		__asm{
+		pushad;
+		}
+		//find our location
+		unsigned int location;
+		__asm
+		{
+		lea eax, bootstrap
+		mov location, eax
+		}
+		unsigned int res;
+		__asm
+		{
+		mov ebx, location;
+		mov ecx, SIZE results;
+		sub ebx, ecx;
+		sub ebx, 2;
+		//mov edx, ebx;
+		mov res, ebx;
+		}
+		//(void*)((void*)location - sizeof(results) + 2);
+		unsigned int conf;
+		//(void*)((void*)location - (void*)(res)-sizeof(pe_file_info));
+		__asm
+		{
+		mov ebx, 1;
+		}
+		unsigned int original_base;
+		unsigned int rva_first_section;
+
+		//placeholder to fill in
+
 		//unsigned int original_oep;
 		//unsigned int base_addr;
-	}*/
+		entrypoint(&conf, &res);
+
+		// if there are more than one stubs to call the bootstrap will call the next stubs bootstrap after passing the configuration data
+		__asm{
+		popad;
+		ret;
+		}
+		*/
+		entrypoint(conf, res);
+	}
 
 	void entrypoint(void* param, void* out)
 	{
@@ -41,7 +81,7 @@ void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
 		// (d) return to loader or call next stub entrypoint
 		if (do_debugger_check())
 		{
-			// fill in out param, I dont like this method. we should find a solution to pass information
+			// fill in our param, I dont like this method. we should find a solution to pass information
 
 			res->continuable = false;
 			res->res_value = 0;
@@ -62,55 +102,56 @@ void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
 		return false;
 	}
 
-	void* stub_gpa(HMODULE base, const char* name)
+	/*	void* stub_gpa(HMODULE base, const char* name)
 	{
-		PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)base;
-		UINT_PTR cbase = (UINT_PTR)base;
+	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)base;
+	UINT_PTR cbase = (UINT_PTR)base;
 
-		if (dos->e_magic != IMAGE_DOS_SIGNATURE)
-			ExitProcess(0); //dafug?
+	if (dos->e_magic != IMAGE_DOS_SIGNATURE)
+	ExitProcess(0); //dafug?
 
-		PIMAGE_NT_HEADERS32 pe = (PIMAGE_NT_HEADERS32)(cbase + dos->e_lfanew);
-		//UINT_PTR cpe = (UINT_PTR)pe;
-		if (pe->Signature != IMAGE_NT_SIGNATURE)
-			ExitProcess(0); //dafug?
+	PIMAGE_NT_HEADERS32 pe = (PIMAGE_NT_HEADERS32)(cbase + dos->e_lfanew);
+	//UINT_PTR cpe = (UINT_PTR)pe;
+	if (pe->Signature != IMAGE_NT_SIGNATURE)
+	ExitProcess(0); //dafug?
 
-		//Get Export Directory
-		UINT_PTR pentry = (UINT_PTR)pe->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-		PIMAGE_EXPORT_DIRECTORY exports = (PIMAGE_EXPORT_DIRECTORY)(cbase + pentry);
+	//Get Export Directory
+	UINT_PTR pentry = (UINT_PTR)pe->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+	PIMAGE_EXPORT_DIRECTORY exports = (PIMAGE_EXPORT_DIRECTORY)(cbase + pentry);
 
-		PDWORD funcs = (PDWORD)(cbase + exports->AddressOfFunctions);
-		PWORD ordinals = (PWORD)(cbase + exports->AddressOfNameOrdinals);
-		PDWORD funcNames = (PDWORD)(cbase + exports->AddressOfNames);
+	PDWORD funcs = (PDWORD)(cbase + exports->AddressOfFunctions);
+	PWORD ordinals = (PWORD)(cbase + exports->AddressOfNameOrdinals);
+	PDWORD funcNames = (PDWORD)(cbase + exports->AddressOfNames);
 
-		//ordinal lookup?
-		if (HIWORD(name) == 0)
-		{
-			for (size_t i = 0; i < exports->NumberOfNames; i++)
-			{
-				if (ordinals[i] == LOWORD(name))
-				{
-					return (void*)(cbase + funcs[i]);
-				}
-			}
-		}
-		for (size_t i = 0; i < exports->NumberOfFunctions; i++)
-		{
-			UINT_PTR entry_point = funcs[i];
-			if (entry_point)
-			{
-				//enumerate names
-				for (size_t j = 0; j < exports->NumberOfNames; j++)
-				{
-					if (ordinals[j] == i && __strncmp(name, (const char*)(funcNames[j] + cbase), __strlen(name)) == 0)
-					{
-						return (void*)(cbase + entry_point);
-					}
-				}
-			}
-		}
-		return 0;
+	//ordinal lookup?
+	if (HIWORD(name) == 0)
+	{
+	for (size_t i = 0; i < exports->NumberOfNames; i++)
+	{
+	if (ordinals[i] == LOWORD(name))
+	{
+	return (void*)(cbase + funcs[i]);
 	}
+	}
+	}
+	for (size_t i = 0; i < exports->NumberOfFunctions; i++)
+	{
+	UINT_PTR entry_point = funcs[i];
+	if (entry_point)
+	{
+	//enumerate names
+	for (size_t j = 0; j < exports->NumberOfNames; j++)
+	{
+	if (ordinals[j] == i && __strncmp(name, (const char*)(funcNames[j] + cbase), __strlen(name)) == 0)
+	{
+	return (void*)(cbase + entry_point);
+	}
+	}
+	}
+	}
+	return 0;
+	}
+	*/
 	void * __cdecl _memset(
 		void *dst,
 		int val,
@@ -150,7 +191,7 @@ void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
 	char* __strcpy(char* dst, const char* src)
 	{
 		if (!dst || !src)
-			return nullptr;
+			return 0;
 		char* temp = dst;
 		while ((*dst++ = *src++) != '\0')
 			;
@@ -177,5 +218,4 @@ void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
 				return 0;
 		return 0;
 	}
-
 }
