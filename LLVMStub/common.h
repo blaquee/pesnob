@@ -1,5 +1,5 @@
-#ifndef _TYPEDEF_ 
-#define _TYPEDEF_
+#ifndef _COMMON_ 
+#define _COMMON_
 
 
 typedef HMODULE(WINAPI *pLoadLibraryA)(LPCTSTR lpFileName);
@@ -13,8 +13,8 @@ typedef void(__stdcall *stub_entry)(void* param, void* out);
 
 //stub specific
 extern "C" {
-	extern void entrypoint(void* param, void* out);
-	extern bool do_debugger_check();
+	//extern void entrypoint(void* param, void* out);
+	//extern bool do_debugger_check();
 }
 
 #pragma pack(push, 1)
@@ -38,6 +38,7 @@ struct packed_section
 struct pe_file_info
 {
 	short num_sections;
+	//short num_stubs;
 	DWORD size_packed;
 	DWORD size_unpacked;
 	
@@ -45,6 +46,7 @@ struct pe_file_info
 	DWORD original_import_directory_rva; //Relative address of original import table
 	DWORD original_import_directory_size; //Original import table size
 	DWORD original_ep;
+	//stub_entry* entries;
 
 	pLoadLibraryA loadlib;
 	pGetProcAddress getProcAddr;

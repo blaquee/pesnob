@@ -113,14 +113,18 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +133,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <DataExecutionPrevention>false</DataExecutionPrevention>
+      <AdditionalLibraryDirectories>$(ProjectDir)compress;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,7 +154,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="compress\lz-xz.c" />
-    <ClCompile Include="compress\pithy.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pe_lib\entropy.cpp" />
     <ClCompile Include="pe_lib\file_version_info.cpp" />
@@ -191,6 +195,7 @@
     <ClCompile Include="stub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="compress\lzz.h" />
     <ClInclude Include="compress\pithy.h" />
     <ClInclude Include="helper.h" />
     <ClInclude Include="pe_lib\entropy.h" />

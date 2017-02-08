@@ -16,6 +16,12 @@
     <Filter Include="Header Files\pelib">
       <UniqueIdentifier>{f781e7c9-576f-4114-a144-9e43d9fcf798}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\compress">
+      <UniqueIdentifier>{f1c62582-6625-47bb-94ef-fa0e8ad91595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\compress">
+      <UniqueIdentifier>{7e168a13-f32e-48f8-8230-11239e911ae1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -136,10 +142,7 @@
       <Filter>Header Files\pelib</Filter>
     </ClCompile>
     <ClCompile Include="compress\lz-xz.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="compress\pithy.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\compress</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -281,8 +284,11 @@
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="compress\lzz.h">
+      <Filter>Header Files\compress</Filter>
+    </ClInclude>
     <ClInclude Include="compress\pithy.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\compress</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <Windows.h>
+#include <stdio.h>
 
 #include <vector>
 #include <list>
@@ -13,11 +13,12 @@
 #include "stub.h"
 #include "helper.h"
 #include "pe_lib\pe_bliss.h"
-#include "compress\pithy.h"
+//#include "compress\pithy.h"
+#include "compress\lzz.h"
 
 using namespace std;
 using namespace pe_bliss;
-
+#pragma comment(lib, "lz.lib")
 
 DWORD get_original_entrypoint()
 {
@@ -73,7 +74,7 @@ char* create_stub_blob(const char** section_names, size_t num_sections, size_t *
 
 int main(int argc, char** argv)
 {
-	//Stub sections we want to copy
+	//Stub sections we want to extract
 	const char *stubs [] = {
 		".stub",
 		".crt"
@@ -187,7 +188,8 @@ int main(int argc, char** argv)
 		size_t compressed_size;
 
 		cout << "Packing sections" << endl;
-		pithy_Compress(packed_section_info.data(), packed_section_info.size(), &out_buf[0], compressed_size, 1);
+		encode_buf((byte*)packed_section_info.data(), packed_section_info.size(), (byte*)&out_buf[0], (dword*)&compressed_size);
+		//pithy_Compress(packed_section_info.data(), packed_section_info.size(), &out_buf[0], compressed_size, 1);
 
 		if (compressed_size == 0)
 		{
