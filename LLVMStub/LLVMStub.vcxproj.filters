@@ -16,11 +16,11 @@
     <Filter Include="Header Files\pelib">
       <UniqueIdentifier>{f781e7c9-576f-4114-a144-9e43d9fcf798}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\compress">
-      <UniqueIdentifier>{f1c62582-6625-47bb-94ef-fa0e8ad91595}</UniqueIdentifier>
+    <Filter Include="Source Files\lz4">
+      <UniqueIdentifier>{e2b1d769-e50a-402e-8d0b-efd684e552f1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\compress">
-      <UniqueIdentifier>{7e168a13-f32e-48f8-8230-11239e911ae1}</UniqueIdentifier>
+    <Filter Include="Header Files\lz4">
+      <UniqueIdentifier>{b918440e-d765-4493-bb7e-46661f9aff81}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -141,14 +141,11 @@
     <ClCompile Include="pe_lib\version_info_viewer.cpp">
       <Filter>Header Files\pelib</Filter>
     </ClCompile>
-    <ClCompile Include="compress\lz-xz.c">
-      <Filter>Source Files\compress</Filter>
+    <ClCompile Include="compress\lz4\lz4.c">
+      <Filter>Source Files\lz4</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stub.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pe_lib\entropy.h">
       <Filter>Header Files\pelib</Filter>
     </ClInclude>
@@ -284,11 +281,8 @@
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="compress\lzz.h">
-      <Filter>Header Files\compress</Filter>
-    </ClInclude>
-    <ClInclude Include="compress\pithy.h">
-      <Filter>Header Files\compress</Filter>
+    <ClInclude Include="compress\lz4\lz4.h">
+      <Filter>Header Files\lz4</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

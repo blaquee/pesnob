@@ -3,6 +3,22 @@
 #include <intrin.h>
 #include "../LLVMStub/common.h"
 
+
+/*
+Rules for Stubs:
+1. Do not use global variables (will cause memory references that require normalization when section is extracted)
+2. Use stack allocated variables for strings char str [] = {'a','b','c'};
+3. Keep stub small so calls/JMPs and other branches use relative offset (absolute branches will require normalization)
+
+Most compilers will optimize branches as long as they stay within a 32byte boundary, any far calls could potentially break this:
+
+mov reg, addr
+call reg
+
+or call imm
+
+are what we want to avoid
+*/
 #pragma section(".stub", read, execute, write)
 
 extern "C" {
@@ -10,13 +26,18 @@ extern "C" {
 	int __strlen(const char* str);
 	int __strncmp(const char* s1, const char* s2, size_t n);
 	char* __strcpy(char* dst, const char* src);
-	void * __cdecl _memset(void *dst, int val, unsigned int count);
-	void * __cdecl _memcpy(void * dst, const void * src, unsigned int count);
+	void * __cdecl __memset(void *dst, int val, unsigned int count);
+	void * __cdecl __memcpy(void * dst, const void * src, unsigned int count);
 	void entrypoint(void* param, void* out);
 	bool do_debugger_check();
 
 
 #pragma code_seg(".stub$a")
+	/*
+		The loader will place some memory before the bootstrap when section is extracted, 
+		this is for the configuration structures. bootstrap will read those into local pointers and
+		read/fill them accordingly, then pass information to the entry point
+	*/
 	void bootstrap()
 	{
 		void* location = bootstrap;
@@ -152,7 +173,7 @@ extern "C" {
 	return 0;
 	}
 	*/
-	void * __cdecl _memset(
+	void * __cdecl __memset(
 		void *dst,
 		int val,
 		unsigned int count
@@ -168,7 +189,7 @@ extern "C" {
 		return(start);
 	}
 
-	void * __cdecl _memcpy(
+	void * __cdecl __memcpy(
 		void * dst,
 		const void * src,
 		unsigned int count

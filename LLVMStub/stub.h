@@ -1,8 +1,6 @@
 #ifndef _STUB_
 #define _STUB_
 
-extern DWORD oldEP;
-
 
 #define DEFAULT_VAL_BYTE 0xF
 #define DEFAULT_VAL_WORD 0xFFFF

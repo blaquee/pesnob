@@ -10,13 +10,6 @@ typedef BOOL(WINAPI *pVirtualProtect)(LPVOID lpAddress, SIZE_T dwSize, DWORD flN
 typedef void(__stdcall *stub_entry)(void* param, void* out);
 
 
-
-//stub specific
-extern "C" {
-	//extern void entrypoint(void* param, void* out);
-	//extern bool do_debugger_check();
-}
-
 #pragma pack(push, 1)
 typedef struct _results
 {
@@ -50,6 +43,8 @@ struct pe_file_info
 
 	pLoadLibraryA loadlib;
 	pGetProcAddress getProcAddr;
+	pVirtualAlloc vAlloc;
+	pVirtualProtect vProtect;
 	DWORD end_iat;
 };
 #pragma pack(pop)

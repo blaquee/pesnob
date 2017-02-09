@@ -76,9 +76,10 @@
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <TargetName>stubber</TargetName>
+    <LibraryPath>$(ProjectDir)compress;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -113,18 +114,19 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerOutput>AssemblyCode</AssemblerOutput>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <MinimalRebuild>true</MinimalRebuild>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +135,8 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <AdditionalLibraryDirectories>$(ProjectDir)compress;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,7 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="compress\lz-xz.c" />
+    <ClCompile Include="compress\lz4\lz4.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pe_lib\entropy.cpp" />
     <ClCompile Include="pe_lib\file_version_info.cpp" />
@@ -195,8 +198,7 @@
     <ClCompile Include="stub.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="compress\lzz.h" />
-    <ClInclude Include="compress\pithy.h" />
+    <ClInclude Include="compress\lz4\lz4.h" />
     <ClInclude Include="helper.h" />
     <ClInclude Include="pe_lib\entropy.h" />
     <ClInclude Include="pe_lib\file_version_info.h" />
@@ -241,7 +243,6 @@
     <ClInclude Include="pe_lib\version_info_editor.h" />
     <ClInclude Include="pe_lib\version_info_types.h" />
     <ClInclude Include="pe_lib\version_info_viewer.h" />
-    <ClInclude Include="stub.h" />
     <ClInclude Include="common.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

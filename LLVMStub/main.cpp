@@ -12,21 +12,13 @@
 #include "pe_lib/pe_bliss.h"
 #include "common.h"
 #include "helper.h"
+#include "compress/lz4/lz4.h"
 
-//#include "compress\pithy.h"
-#include "compress/lzz.h"
+//#include "compress/lzz.h"
 
 using namespace std;
 using namespace pe_bliss;
-#pragma comment(lib, "lz.lib")
-
-DWORD get_original_entrypoint()
-{
-	HMODULE module = GetModuleHandle(NULL);
-	PIMAGE_DOS_HEADER pImageDosHeader = (PIMAGE_DOS_HEADER)module;
-	PIMAGE_NT_HEADERS32 pImageNtHeaders = CALC_OFFSET(PIMAGE_NT_HEADERS32, pImageDosHeader, pImageDosHeader->e_lfanew);
-	return pImageNtHeaders->OptionalHeader.AddressOfEntryPoint;
-}
+//#pragma comment(lib, "lz.lib")
 
 // Copy the stub sections, order matters
 char* create_stub_blob(DWORD base_addr, const char** section_names, size_t num_sections, size_t *out_size)
@@ -74,16 +66,15 @@ char* create_stub_blob(DWORD base_addr, const char** section_names, size_t num_s
 
 int main(int argc, char** argv)
 {
-	string stub_exe = "E:\\Coding\\Stubber\\bin\\stub.dll";
+
 	//Stub sections we want to extract
 	const char *stubs[] = {
-		".stub",
-		".crt"
+		".stub"	
 	};
 
 	//extract stub data from packer body
 	size_t stub_size;
-	char *ret = create_stub_blob(0, stubs, 2, &stub_size);
+	char *ret = create_stub_blob(0, stubs, 1, &stub_size);
 	if (stub_size == 0)
 	{
 		cout << "Couldn't find stub data!" << endl;
@@ -92,11 +83,7 @@ int main(int argc, char** argv)
 	string new_stub(ret, stub_size);
 	free(ret);
 
-
-	results *out = (results*)malloc(sizeof(results));
-	memset(out, 0, sizeof(results));
-
-	char test_file[] = { "E:\\Coding\\Stubber\\bin\\SmallExe.exe" };
+	char test_file[] = { "C:\\git_code\\stubber\\bin\\SmallExe.exe" };
 
 	ifstream target(test_file, std::ios::in | std::ios::binary);
 	if (!target)
@@ -125,11 +112,12 @@ int main(int argc, char** argv)
 			return 0;
 		}
 		//create the packer section
+		cout << "Creating Packer Section" << endl;
 		section packer_section;
 		packer_section.readable(true).writeable(true).executable(true);
 		packer_section.set_name("glpack");
-		packer_section.set_raw_data(new_stub);
-		packer_section.set_size_of_raw_data(align_up(new_stub.size(), image.get_section_alignment()));
+		//packer_section.set_raw_data(new_stub);
+		//packer_section.set_size_of_raw_data(align_up(new_stub.size(), image.get_section_alignment()));
 
 		//section &added_section_stub = image.add_section(packer_section);
 		//image.set_section_virtual_size(added_section_stub, 0x1000);
@@ -174,7 +162,7 @@ int main(int argc, char** argv)
 			packed_section_info += raw_data;
 		}
 
-		// section for original files (compressed)
+		// section for original file (compressed)
 		section packed_;
 		packed_.set_name(".packd");
 		packed_.readable(true).writeable(true).executable(true);
@@ -182,27 +170,38 @@ int main(int argc, char** argv)
 
 
 		peinfo.size_unpacked = packed_section_info.size();
-		//char* buf_out = malloc(packed_section_info.size()*2);
-		size_t compressed_size;
+
+		size_t compressed_size = LZ4_compressBound(packed_section_info.size());
+		out_buf.resize(compressed_size);
 
 		cout << "Packing sections" << endl;
-		encode_buf((byte*)packed_section_info.data(), packed_section_info.size(), (byte*)&out_buf[0], (dword*)&compressed_size);
-		//pithy_Compress(packed_section_info.data(), packed_section_info.size(), &out_buf[0], compressed_size, 1);
-
-		if (compressed_size == 0)
+		int rv = LZ4_compress_default(packed_section_info.data(), (char*)&out_buf[0], packed_section_info.size(), compressed_size);
+		if (rv < 1)
 		{
-			cout << "Encoding failed " << endl;
+			cout << "Compression bad" << endl;
 			return 0;
 		}
+		cout << "Compressed buffer contains " << out_buf.size() << " bytes of compressed data" << endl;
+		cout << "LZ4 reported " << rv << endl;
+		//encode_buf((unsigned char*)packed_section_info.data(), packed_section_info.size(), (unsigned char*)&out_buf[0], (unsigned long*)&compressed_size);
+		//pithy_Compress(packed_section_info.data(), packed_section_info.size(), &out_buf[0], compressed_size, 1);
 
-		//store size of packed data
 		peinfo.size_packed = compressed_size;
-		//string encoded_buffer(buf_out, new_size);
-		results res = { 0 };
-		//add the packed file structure to the beginning of encoded buffer
+		//Add the pe_file_info and results struct to the beginning of the stubs
+		//store size of packed data
+		
+		results *res = (results*)malloc(sizeof(results));
+		memset(res, 0x90, sizeof(results));
+		//add the packed file structure to the beginning of encoded buffer and packer stub
 		string peinfo_buf(reinterpret_cast<const char*>(&peinfo), sizeof(peinfo));
-		string resinfo_buf(reinterpret_cast<const char*>(&res), sizeof(results));
+		string resinfo_buf(reinterpret_cast<const char*>(res), sizeof(results));
 		out_buf = peinfo_buf + resinfo_buf + out_buf;
+
+		new_stub = peinfo_buf + resinfo_buf + new_stub;
+		packer_section.set_raw_data(new_stub);
+		cout << "Aligned section size " << align_up(new_stub.size(), image.get_section_alignment());
+		packer_section.set_size_of_raw_data(align_up(new_stub.size(), 0x200));
+
 
 		//out_buf = encoded_buffer;
 		//calculating enough space for the encoded section (when unpacked)
@@ -221,12 +220,15 @@ int main(int argc, char** argv)
 
 			image.realign_file(0x200);
 
-			//add the sections
+			//add the new sections and set new EP.
 			cout << "Adding encoded section " << endl;
 			section &encoded_section = image.add_section(packed_);
 			image.set_section_virtual_size(encoded_section, total_virtual_size);
 			cout << "Adding unpacker section" << endl;
 			section &packer_s = image.add_section(packer_section);
+			unsigned int new_ep = image.rva_from_section_offset(packer_s, peinfo_buf.size() + resinfo_buf.size());
+			cout << "Setting new Entrypoint to rva: " << new_ep << endl;
+			image.set_ep(new_ep);
 
 		}
 
