@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 
 
 		/*
-			pe_file_info structure contains information about the original executable
+			pe_file_info structure (see: common.h) contains information about the original executable
 			and the packed exectuable. This structure is populated and then appended before 
 			the decompression or loader stub. See stub.cpp to see how we get access to this.
 
@@ -165,12 +165,11 @@ int main(int argc, char** argv)
 			stub ... n             |
 			-----------------------|
 
-			pe_file_info contains information about the original compressed file
 
 			The compressed file will be the first PE section, so the decompressor stub will know
 			to grab the first section and decompress it and restore some data (such as original entrypoint rva)
 
-			The packer will know what stubs to add by using the configuration file and command line
+			The packer will know what stubs to add by using the configuration files and command line
 			parameters that have yet to be added. But stubs will be in a relative folder with their 
 			respective configurations (this will allow automation and randomization of stub adding)
 		*/
@@ -258,6 +257,7 @@ int main(int argc, char** argv)
 		// 2. To write results of stub operations.
 		results *res = (results*)malloc(sizeof(results));
 		memset(res, 0x90, sizeof(results));
+
 		//add the packed file structure to the beginning of packer stub
 		string peinfo_buf(reinterpret_cast<const char*>(&peinfo), sizeof(peinfo));
 		string resinfo_buf(reinterpret_cast<const char*>(res), sizeof(results));
