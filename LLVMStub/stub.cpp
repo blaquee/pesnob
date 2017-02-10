@@ -44,7 +44,7 @@ extern "C" {
 		Ultimately this is the technique that will be used for the actual decompressor stub, then that stub
 		will directly call all subsequent stubs we add to the executable via the packer.
 	*/
-	extern "C" void bootstrap()
+	void bootstrap()
 	{
 		unsigned long location;
 		location = caller();
