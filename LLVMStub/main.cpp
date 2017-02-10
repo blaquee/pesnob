@@ -329,6 +329,7 @@ int main(int argc, char** argv)
 
 			import_setting.set_offset_from_section_start(packer_s.get_raw_data().size());
 
+			// we add the import to the packer section. (dont create a new section)
 			rebuild_imports(image, imports_list, packer_s, import_setting);
 		}
 
