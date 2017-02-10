@@ -40,9 +40,17 @@ extern "C" {
 	*/
 	void bootstrap()
 	{
-		void* location = bootstrap;
-		void* res = (void*)((int*)location - sizeof(results));
-		void* conf = (void*)((int*)res - sizeof(pe_file_info));
+		int location = 0;
+		__asm {
+			call here;
+		here:
+			pop eax;
+			sub eax, 18;
+			mov location, eax;
+		}
+
+		results* res = (results*)(location - sizeof(results));
+		pe_file_info* conf = (pe_file_info*)(res - sizeof(pe_file_info));
 
 		/*
 		__asm{
@@ -88,11 +96,16 @@ extern "C" {
 		}
 		*/
 		entrypoint(conf, res);
+		//results *ress = (results*)res;
+		if (!res->continuable)
+		{
+
+		}
 	}
 
 	void entrypoint(void* param, void* out)
 	{
-		void* addr = (void*)entrypoint;
+		// void* addr = (void*)entrypoint;
 		pe_file_info *myconf = (pe_file_info*)param;
 		results *res = (results*)out;
 		//this should:
@@ -102,7 +115,7 @@ extern "C" {
 		// (d) return to loader or call next stub entrypoint
 		if (do_debugger_check())
 		{
-			// fill in our param, I dont like this method. we should find a solution to pass information
+			// fill in our param, I don't like this method. we should find a solution to pass information
 
 			res->continuable = false;
 			res->res_value = 0;

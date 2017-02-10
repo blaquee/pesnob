@@ -15,7 +15,7 @@ typedef struct _results
 {
 	int res_value;
 	bool continuable;
-	char unused[2];
+	//char unused[2];
 }results;
 
 struct packed_section

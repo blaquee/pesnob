@@ -72,6 +72,9 @@ int main(int argc, char** argv)
 		".stub"	
 	};
 
+	cout << "Size of results struct: " << sizeof(results) << endl;
+	cout << "Size of pefileinfo: " << sizeof(pe_file_info) << endl;
+
 	//extract stub data from packer body
 	size_t stub_size;
 	char *ret = create_stub_blob(0, stubs, 1, &stub_size);
@@ -201,15 +204,15 @@ int main(int argc, char** argv)
 		packer_section.set_raw_data(new_stub);
 		cout << "Aligned section size " << align_up(new_stub.size(), image.get_section_alignment());
 		packer_section.set_size_of_raw_data(align_up(new_stub.size(), 0x200));
+		free(res);
 
-
-		//out_buf = encoded_buffer;
-		//calculating enough space for the encoded section (when unpacked)
 		{
 			cout << "Recreating the executable" << endl;
+			// Replace the first section with our packed section
 			const section& first_section = image.get_image_sections().front();
 			packed_.set_virtual_address(first_section.get_virtual_address());
 
+			// Calculate the total size needed after the packed data is unpacked.
 			const section& last_section = image.get_image_sections().back();
 			DWORD total_virtual_size = last_section.get_virtual_address() +
 				last_section.get_aligned_virtual_size(last_section.get_virtual_size()) -
@@ -217,10 +220,9 @@ int main(int argc, char** argv)
 
 			// delete current sections
 			image.get_image_sections().clear();
-
 			image.realign_file(0x200);
 
-			//add the new sections and set new EP.
+			// Add the new sections and set new EP.
 			cout << "Adding encoded section " << endl;
 			section &encoded_section = image.add_section(packed_);
 			image.set_section_virtual_size(encoded_section, total_virtual_size);
@@ -230,6 +232,38 @@ int main(int argc, char** argv)
 			cout << "Setting new Entrypoint to rva: " << new_ep << endl;
 			image.set_ep(new_ep);
 
+
+			// Rebuild the import table for our packed executable.
+			import_rebuilder_settings import_setting(true, false);
+			import_library kern32;
+			kern32.set_name("kernel32");
+
+			imported_function funcs;
+			funcs.set_name("LoadLibraryA");
+			kern32.add_import(funcs);
+
+			funcs.set_name("GetProcAddress");
+			kern32.add_import(funcs);
+
+			funcs.set_name("VirtualAlloc");
+			kern32.add_import(funcs);
+
+			funcs.set_name("VirtualProtect");
+			kern32.add_import(funcs);
+
+			// We want to write the import data to our pe_file_info structure so our stub can use it
+			DWORD load_lib_rva = image.rva_from_section_offset(packer_s, offsetof(pe_file_info, loadlib));
+
+			kern32.set_rva_to_iat(load_lib_rva);
+			imported_functions_list imports_list;
+			imports_list.push_back(kern32);
+
+			import_setting.build_original_iat(false);
+			import_setting.save_iat_and_original_iat_rvas(true, true);
+
+			import_setting.set_offset_from_section_start(packer_s.get_raw_data().size());
+
+			rebuild_imports(image, imports_list, packer_s, import_setting);
 		}
 
 		//output new file
