@@ -27,4 +27,7 @@ static void strip_nullbytes(std::basic_string<T>& str)
 	while (!*(str.end() - 1) && !str.empty())
 		str.erase(str.length() - 1);
 }
+
+
+
 #endif

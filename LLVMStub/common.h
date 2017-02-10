@@ -7,7 +7,7 @@ typedef FARPROC(WINAPI *pGetProcAddress)(HMODULE hModule, LPCSTR lpProcName);
 
 typedef LPVOID(WINAPI *pVirtualAlloc)(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
 typedef BOOL(WINAPI *pVirtualProtect)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
-typedef void(__stdcall *stub_entry)(void* param, void* out);
+typedef void(__cdecl *stub_entry)();
 
 
 #pragma pack(push, 1)
@@ -28,6 +28,12 @@ struct packed_section
 	DWORD characteristics; //Section characteristics
 };
 
+// This contains a linked list of stub entries. It contains pointers to all the stubs well be adding to the 
+// target exe. Will be added to the pe_file_info structure
+struct stub_entries {
+	stub_entries* next;
+	stub_entry ep;
+};
 struct pe_file_info
 {
 	short num_sections;

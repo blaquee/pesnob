@@ -20,7 +20,9 @@ using namespace std;
 using namespace pe_bliss;
 //#pragma comment(lib, "lz.lib")
 
-// Copy the stub sections, order matters
+/*
+	This function extracts the stub from the packer body, see main for future enhancements to this
+*/
 char* create_stub_blob(DWORD base_addr, const char** section_names, size_t num_sections, size_t *out_size)
 {
 	if (num_sections == 0)
@@ -72,10 +74,29 @@ int main(int argc, char** argv)
 		".stub"	
 	};
 
+	// ignore, for debug purposes
 	cout << "Size of results struct: " << sizeof(results) << endl;
 	cout << "Size of pefileinfo: " << sizeof(pe_file_info) << endl;
 
-	//extract stub data from packer body
+	/* 
+		Extract the stub from the target executable. Right now this is located in 
+		the packers own body, however, the idea here is to change this to parse
+		out this data from external executables written in the same manner as the code in 
+		stub.cpp.
+
+		It will take input as an exe and a configuration file that contains the sections to extract.
+		The order of the sections is important if there are more than one to avoid any
+		breakage in assembly branch operations. ( call rel16/32, jmp rel16/32 )
+
+		config.ini
+		[sections]
+		name="stub"
+		name="stub2"
+		
+
+		We can use any of several open source ini processors, or use json. Or simply use python to extract
+		the binary blob
+	*/
 	size_t stub_size;
 	char *ret = create_stub_blob(0, stubs, 1, &stub_size);
 	if (stub_size == 0)
@@ -86,9 +107,11 @@ int main(int argc, char** argv)
 	string new_stub(ret, stub_size);
 	free(ret);
 
+	// hardcoding the smallexe because I'm so fly
+	char test_file2[] = { "E:\\Coding\\LLVMStub\\bin\\SmallExe.exe" };
 	char test_file[] = { "C:\\git_code\\stubber\\bin\\SmallExe.exe" };
 
-	ifstream target(test_file, std::ios::in | std::ios::binary);
+	ifstream target(test_file2, std::ios::in | std::ios::binary);
 	if (!target)
 	{
 		cout << "Error Reading File" << endl;
@@ -100,7 +123,7 @@ int main(int argc, char** argv)
 		// parse the pe file
 		cout << "Parsing PE File" << endl;
 		pe_base image(pe_factory::create_pe(target));
-		// dotnet not supported
+		// dotnet not supported (also add x64 when im not lazy)
 		if (image.is_dotnet())
 		{
 			cout << "Unsupported File" << endl;
@@ -108,28 +131,56 @@ int main(int argc, char** argv)
 		}
 
 
+		// Ensure we have a valid PE to pack.
 		const auto& sections = image.get_image_sections();
 		if (sections.empty())
 		{
 			cout << "No sections to compress" << endl;
 			return 0;
 		}
-		//create the packer section
+
+		// Prepare a new section for our stub
 		cout << "Creating Packer Section" << endl;
 		section packer_section;
 		packer_section.readable(true).writeable(true).executable(true);
 		packer_section.set_name("glpack");
-		//packer_section.set_raw_data(new_stub);
-		//packer_section.set_size_of_raw_data(align_up(new_stub.size(), image.get_section_alignment()));
 
-		//section &added_section_stub = image.add_section(packer_section);
-		//image.set_section_virtual_size(added_section_stub, 0x1000);
+
+		/*
+			pe_file_info structure contains information about the original executable
+			and the packed exectuable. This structure is populated and then appended before 
+			the decompression or loader stub. See stub.cpp to see how we get access to this.
+
+			The full packer stub will eventually look like this:
+
+			-----------------------
+			pe_file_info structure |
+			-----------------------|
+			results structure      |
+			-----------------------|
+			decompressor stub      |
+			-----------------------|
+			stub 1                 |
+			-----------------------|
+			stub ... n             |
+			-----------------------|
+
+			pe_file_info contains information about the original compressed file
+
+			The compressed file will be the first PE section, so the decompressor stub will know
+			to grab the first section and decompress it and restore some data (such as original entrypoint rva)
+
+			The packer will know what stubs to add by using the configuration file and command line
+			parameters that have yet to be added. But stubs will be in a relative folder with their 
+			respective configurations (this will allow automation and randomization of stub adding)
+		*/
 
 		pe_file_info peinfo = { 0 };
 		peinfo.num_sections = image.get_number_of_sections();
 		peinfo.original_ep = image.get_ep();
 		peinfo.total_virtual_size_of_sections = image.get_size_of_image();
 
+		// this string contains all the section table data from the original file
 		string packed_section_info;
 		{
 			packed_section_info.resize(sections.size() * sizeof(packed_section));
@@ -137,6 +188,7 @@ int main(int argc, char** argv)
 			//section raw data
 			string raw_data;
 			unsigned int cur_section = 0;
+			// iterate all the sections and populate the packed_section structure (NT_SECTION_HEADER)
 			for (auto it = sections.begin(); it != sections.end(); ++it, ++cur_section)
 			{
 				const section &s = *it;
@@ -153,10 +205,12 @@ int main(int argc, char** argv)
 					memset(info.name, 0, sizeof(info.name));
 					memcpy(info.name, s.get_name().c_str(), s.get_name().length());
 				}
+				//this section contains no data
 				if (s.get_raw_data().empty())
 					continue;
 				raw_data += s.get_raw_data();
 			}
+			// no data in this pe file...
 			if (raw_data.empty())
 			{
 				cout << "Empty sections" << endl;
@@ -165,16 +219,21 @@ int main(int argc, char** argv)
 			packed_section_info += raw_data;
 		}
 
-		// section for original file (compressed)
+		/*
+			This section contains the original files sections and compresses them all together into
+			one section for the new PE
+		*/
 		section packed_;
 		packed_.set_name(".packd");
 		packed_.readable(true).writeable(true).executable(true);
 		string &out_buf = packed_.get_raw_data();
 
-
+		// save the unpacked size.
 		peinfo.size_unpacked = packed_section_info.size();
 
+		// determine how large the compressed data will be
 		size_t compressed_size = LZ4_compressBound(packed_section_info.size());
+		cout << "LZ4 says it will return " << compressed_size << " bytes of compressed data" << endl;
 		out_buf.resize(compressed_size);
 
 		cout << "Packing sections" << endl;
@@ -189,18 +248,23 @@ int main(int argc, char** argv)
 		//encode_buf((unsigned char*)packed_section_info.data(), packed_section_info.size(), (unsigned char*)&out_buf[0], (unsigned long*)&compressed_size);
 		//pithy_Compress(packed_section_info.data(), packed_section_info.size(), &out_buf[0], compressed_size, 1);
 
+
+		// save the compressed data size
 		peinfo.size_packed = compressed_size;
-		//Add the pe_file_info and results struct to the beginning of the stubs
-		//store size of packed data
 		
+		// allocate some space for the results structure to add to the packer section
+		// this actually served two purposes for now.
+		// 1. To find the location of the pe_file_info structure and
+		// 2. To write results of stub operations.
 		results *res = (results*)malloc(sizeof(results));
 		memset(res, 0x90, sizeof(results));
-		//add the packed file structure to the beginning of encoded buffer and packer stub
+		//add the packed file structure to the beginning of packer stub
 		string peinfo_buf(reinterpret_cast<const char*>(&peinfo), sizeof(peinfo));
 		string resinfo_buf(reinterpret_cast<const char*>(res), sizeof(results));
-		out_buf = peinfo_buf + resinfo_buf + out_buf;
+		//out_buf = peinfo_buf + resinfo_buf + out_buf;
 
 		new_stub = peinfo_buf + resinfo_buf + new_stub;
+		// add the data to the (un)packer section
 		packer_section.set_raw_data(new_stub);
 		cout << "Aligned section size " << align_up(new_stub.size(), image.get_section_alignment());
 		packer_section.set_size_of_raw_data(align_up(new_stub.size(), 0x200));
@@ -228,6 +292,8 @@ int main(int argc, char** argv)
 			image.set_section_virtual_size(encoded_section, total_virtual_size);
 			cout << "Adding unpacker section" << endl;
 			section &packer_s = image.add_section(packer_section);
+
+			// calculate the new entrypoint, which will be the bootstrap function inside the (un)packer section
 			unsigned int new_ep = image.rva_from_section_offset(packer_s, peinfo_buf.size() + resinfo_buf.size());
 			cout << "Setting new Entrypoint to rva: " << new_ep << endl;
 			image.set_ep(new_ep);

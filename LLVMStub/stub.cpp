@@ -21,6 +21,8 @@ are what we want to avoid
 */
 #pragma section(".stub", read, execute, write)
 
+
+
 extern "C" {
 	//forward declares
 	int __strlen(const char* str);
@@ -30,92 +32,65 @@ extern "C" {
 	void * __cdecl __memcpy(void * dst, const void * src, unsigned int count);
 	void entrypoint(void* param, void* out);
 	bool do_debugger_check();
+	unsigned long caller(VOID);
 
 
 #pragma code_seg(".stub$a")
 	/*
-		The loader will place some memory before the bootstrap when section is extracted, 
+		The packer will place some memory before the bootstrap when the section is extracted, 
 		this is for the configuration structures. bootstrap will read those into local pointers and
 		read/fill them accordingly, then pass information to the entry point
+
+		Ultimately this is the technique that will be used for the actual decompressor stub, then that stub
+		will directly call all subsequent stubs we add to the executable via the packer.
 	*/
-	void bootstrap()
+	extern "C" void bootstrap()
 	{
-		int location = 0;
-		__asm {
-			call here;
-		here:
-			pop eax;
-			sub eax, 18;
-			mov location, eax;
-		}
+		unsigned long location;
+		location = caller();
 
-		results* res = (results*)(location - sizeof(results));
-		pe_file_info* conf = (pe_file_info*)((int*)res - sizeof(pe_file_info));
-
-		/*
-		__asm{
-		pushad;
-		}
-		//find our location
-		unsigned int location;
-		__asm
+		// find the byte where 'results' is located, at this point its only used for
+		// finding our position since pe_file_info may contain different information depending
+		// on how that data structure is populated.
+		while (true)
 		{
-		lea eax, bootstrap
-		mov location, eax
+			if (*((byte *)location) == (byte)0x90)
+				break;
+			location--;
 		}
-		unsigned int res;
-		__asm
-		{
-		mov ebx, location;
-		mov ecx, SIZE results;
-		sub ebx, ecx;
-		sub ebx, 2;
-		//mov edx, ebx;
-		mov res, ebx;
-		}
-		//(void*)((void*)location - sizeof(results) + 2);
-		unsigned int conf;
-		//(void*)((void*)location - (void*)(res)-sizeof(pe_file_info));
-		__asm
-		{
-		mov ebx, 1;
-		}
-		unsigned int original_base;
-		unsigned int rva_first_section;
+		//get a pointer to the location of the result structure
+		unsigned int res = (unsigned int)(location - sizeof(results) + 1);
+		//get a pointer to the location of the pe_file_info structure
+		unsigned int conf = (unsigned int)(res - sizeof(pe_file_info));
 
-		//placeholder to fill in
+		//Get api's needed to bootstrap
+		pe_file_info* peinfo = (pe_file_info*)conf;
 
-		//unsigned int original_oep;
-		//unsigned int base_addr;
 		entrypoint(&conf, &res);
-
-		// if there are more than one stubs to call the bootstrap will call the next stubs bootstrap after passing the configuration data
-		__asm{
-		popad;
-		ret;
-		}
-		*/
-		entrypoint(conf, res);
-		//results *ress = (results*)res;
-		if (!res->continuable)
+		results *ress = (results*)res;
+		if (!ress->continuable)
 		{
-
+			//exit
 		}
 	}
-
+#ifdef _WIN32
+	__declspec(noinline) unsigned long caller(VOID) {
+		return (unsigned long)_ReturnAddress();
+	}
+#else
+	unsigned long __attribute__((noinline)) caller(VOID) {
+		return  (ULONG_PTR)__builtin_return_address()
+	}
+#endif
 	void entrypoint(void* param, void* out)
 	{
 		// void* addr = (void*)entrypoint;
 		pe_file_info *myconf = (pe_file_info*)param;
 		results *res = (results*)out;
-		//this should:
-		// (a) find location in memory
-		// (b) populate any pointers
-		// (c) run stub code
-		// (d) return to loader or call next stub entrypoint
+
 		if (do_debugger_check())
 		{
-			// fill in our param, I don't like this method. we should find a solution to pass information
+			// fill in our result parameters
 
 			res->continuable = false;
 			res->res_value = 0;
