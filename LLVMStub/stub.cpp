@@ -50,7 +50,7 @@ extern "C" {
 		}
 
 		results* res = (results*)(location - sizeof(results));
-		pe_file_info* conf = (pe_file_info*)(res - sizeof(pe_file_info));
+		pe_file_info* conf = (pe_file_info*)((int*)res - sizeof(pe_file_info));
 
 		/*
 		__asm{
