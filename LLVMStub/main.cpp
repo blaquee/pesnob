@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 		cout << "Creating Packer Section" << endl;
 		section packer_section;
 		packer_section.readable(true).writeable(true).executable(true);
-		packer_section.set_name("glpack");
+		packer_section.set_name(".glpack");
 
 
 		/*

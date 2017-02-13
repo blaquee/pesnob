@@ -18,7 +18,7 @@ typedef struct _results
 	//char unused[2];
 }results;
 
-struct packed_section
+typedef struct packed_section
 {
 	char name[8]; //Section name
 	DWORD virtual_size; //Virtual size
@@ -26,15 +26,15 @@ struct packed_section
 	DWORD size_of_raw_data; //Raw data size
 	DWORD pointer_to_raw_data; //Raw data file offset
 	DWORD characteristics; //Section characteristics
-};
+}packed_section;
 
 // This contains a linked list of stub entries. It contains pointers to all the stubs well be adding to the 
 // target exe. Will be added to the pe_file_info structure
-struct stub_entries {
-	stub_entries* next;
+typedef struct stub_entries {
+	struct stub_entries* next;
 	stub_entry ep;
-};
-struct pe_file_info
+}stub_entries;
+typedef struct _pe_file_info
 {
 	short num_sections;
 	//short num_stubs;
@@ -52,6 +52,6 @@ struct pe_file_info
 	pVirtualAlloc vAlloc;
 	pVirtualProtect vProtect;
 	DWORD end_iat;
-};
+}pe_file_info;
 #pragma pack(pop)
 #endif // 

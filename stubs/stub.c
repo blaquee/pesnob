@@ -1,12 +1,12 @@
 #include <Windows.h>
 #include <winternl.h>
 #include <intrin.h>
+#include <stdbool.h>
 #include "../LLVMStub/common.h"
-
 
 /*
 Rules for Stubs:
-1. Do not use global variables (will cause memory references that require normalization when section is extracted)
+1. Do not use global variables (will cause memory references to data section that require normalization when section is extracted)
 2. Use stack allocated variables for strings char str [] = {'a','b','c'};
 3. Keep stub small so calls/JMPs and other branches use relative offset (absolute branches will require normalization)
 
@@ -22,8 +22,6 @@ are what we want to avoid
 #pragma section(".stub", read, execute, write)
 
 
-
-extern "C" {
 	//forward declares
 	int __strlen(const char* str);
 	int __strncmp(const char* s1, const char* s2, size_t n);
@@ -37,12 +35,12 @@ extern "C" {
 
 #pragma code_seg(".stub$a")
 	/*
-		The packer will place some data before the bootstrap when the section is extracted, 
-		this is for the configuration structures. bootstrap will read those into local pointers and
-		read/fill them accordingly, then pass information to the entry point
+	The packer will place some data before the bootstrap when the section is extracted,
+	this is for the configuration structures. bootstrap will read those into local pointers and
+	read/fill them accordingly, then pass information to the entry point
 
-		Ultimately this is the technique that will be used for the actual decompressor stub, then that stub
-		will directly call all subsequent stubs we add to the executable via the packer.
+	Ultimately this is the technique that will be used for the actual decompressor stub, then that stub
+	will directly call all subsequent stubs we add to the executable via the packer.
 	*/
 	void bootstrap()
 	{
@@ -52,7 +50,7 @@ extern "C" {
 		// find the byte where 'results' is located, at this point its only used for
 		// finding our position since pe_file_info may contain different information depending
 		// on how that data structure is populated.
-		while (true)
+		while (TRUE)
 		{
 			if (*((byte *)location) == (byte)0x90)
 				break;
@@ -62,6 +60,7 @@ extern "C" {
 		unsigned int res = (unsigned int)(location - sizeof(results) + 1);
 		//get a pointer to the location of the pe_file_info structure
 		unsigned int conf = (unsigned int)(res - sizeof(pe_file_info));
+
 
 		//Get api's needed to bootstrap
 		pe_file_info* peinfo = (pe_file_info*)conf;
@@ -227,4 +226,3 @@ extern "C" {
 				return 0;
 		return 0;
 	}
-}
