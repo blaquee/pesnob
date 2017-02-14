@@ -18,5 +18,8 @@
     <ClCompile Include="stub.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="crt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,0 +1,9 @@
+bootstrap
+entrypoint
+caller
+do_debugger_check
+__memcpy
+memset
+__strcpy
+__strlen
+__strncmp
