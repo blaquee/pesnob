@@ -27,9 +27,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stub.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pe_lib\entropy.cpp">
       <Filter>Header Files\pelib</Filter>
     </ClCompile>

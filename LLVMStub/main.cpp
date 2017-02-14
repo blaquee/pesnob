@@ -23,6 +23,44 @@ using namespace pe_bliss;
 /*
 	This function extracts the stub from the packer body, see main for future enhancements to this
 */
+typedef vector<string> StringList;
+
+ bool get_stubs(istream& input, vector<string>& section_names, string output)
+{
+	if (input.bad())
+		return 0;
+
+	int count_extracted = 0;
+	try
+	{
+		pe_base pe(pe_factory::create_pe(input));
+		const section_list sections(pe.get_image_sections());
+
+		for (auto it = sections.begin(); it != sections.end(); ++it)
+		{
+			for (auto jt = section_names.begin(); jt != section_names.end(); ++jt)
+			{
+				if (it->get_name().compare(*jt))
+				{
+					count_extracted++;
+					cout << "Extracting section: " << it->get_name() << endl;
+					string data = it->get_raw_data();
+					strip_nullbytes(data);
+					output += data;
+				}
+			}
+		}
+	}
+	catch (const pe_exception& e)
+	{
+		cout << "PE Exception " << e.what() << endl;
+		return 0;
+	}
+	if( count_extracted == section_names.size())
+		return true;
+	return false;
+
+}
 char* create_stub_blob(DWORD base_addr, const char** section_names, size_t num_sections, size_t *out_size)
 {
 	if (num_sections == 0)
@@ -69,10 +107,13 @@ char* create_stub_blob(DWORD base_addr, const char** section_names, size_t num_s
 int main(int argc, char** argv)
 {
 
+	string stub_name = "stub.exe";
 	//Stub sections we want to extract
 	const char *stubs[] = {
 		".stub"	
 	};
+	StringList s;
+	s.push_back(".stub");
 
 	// ignore, for debug purposes
 	cout << "Size of results struct: " << sizeof(results) << endl;
@@ -97,6 +138,18 @@ int main(int argc, char** argv)
 		We can use any of several open source ini processors, or use json. Or simply use python to extract
 		the binary blob
 	*/
+	ifstream stub(stub_name, std::ios::in | std::ios::binary);
+	if (!stub)
+	{
+		cout << "No stub found" << endl;
+		return 0;
+	}
+	string new_stub;
+
+	get_stubs(stub, s, new_stub);
+
+	cout << "Stub Size: " << new_stub.size() << endl;
+	/*
 	size_t stub_size;
 	char *ret = create_stub_blob(0, stubs, 1, &stub_size);
 	if (stub_size == 0)
@@ -106,7 +159,7 @@ int main(int argc, char** argv)
 	}
 	string new_stub(ret, stub_size);
 	free(ret);
-
+	*/
 	// hardcoding the smallexe because I'm so fly
 	char test_file2[] = { "E:\\Coding\\LLVMStub\\bin\\SmallExe.exe" };
 	char test_file[] = { "C:\\git_code\\stubber\\bin\\SmallExe.exe" };
@@ -124,7 +177,7 @@ int main(int argc, char** argv)
 		cout << "Parsing PE File" << endl;
 		pe_base image(pe_factory::create_pe(target));
 		// dotnet not supported (also add x64 when im not lazy)
-		if (image.is_dotnet())
+		if (image.is_dotnet() || (image.get_pe_type() == pe_type_64))
 		{
 			cout << "Unsupported File" << endl;
 			return 0;

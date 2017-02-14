@@ -34,6 +34,8 @@ typedef struct stub_entries {
 	struct stub_entries* next;
 	stub_entry ep;
 }stub_entries;
+
+
 typedef struct _pe_file_info
 {
 	short num_sections;

@@ -22,7 +22,6 @@
     <ProjectGuid>{475EF6DD-8FF6-4CFD-86D4-E95FA2D596B0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LLVMStub</RootNamespace>
-    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
     <ProjectName>Allspark</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -196,7 +195,6 @@
     <ClCompile Include="pe_lib\utils.cpp" />
     <ClCompile Include="pe_lib\version_info_editor.cpp" />
     <ClCompile Include="pe_lib\version_info_viewer.cpp" />
-    <ClCompile Include="stub.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compress\lz4\lz4.h" />
