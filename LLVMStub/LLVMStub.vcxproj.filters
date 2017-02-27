@@ -141,6 +141,9 @@
     <ClCompile Include="compress\lz4\lz4.c">
       <Filter>Source Files\lz4</Filter>
     </ClCompile>
+    <ClCompile Include="compress\quicklz.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pe_lib\entropy.h">
@@ -280,6 +283,9 @@
     </ClInclude>
     <ClInclude Include="compress\lz4\lz4.h">
       <Filter>Header Files\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="compress\quicklz.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

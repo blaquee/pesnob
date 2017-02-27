@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="compress\lz4\lz4.c" />
+    <ClCompile Include="compress\quicklz.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pe_lib\entropy.cpp" />
     <ClCompile Include="pe_lib\file_version_info.cpp" />
@@ -198,6 +199,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compress\lz4\lz4.h" />
+    <ClInclude Include="compress\quicklz.h" />
     <ClInclude Include="helper.h" />
     <ClInclude Include="pe_lib\entropy.h" />
     <ClInclude Include="pe_lib\file_version_info.h" />

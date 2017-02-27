@@ -289,6 +289,7 @@ int main(int argc, char** argv)
 		out_buf.resize(compressed_size);
 
 		cout << "Packing sections" << endl;
+		cout << "Size to pack: " << packed_section_info.size() << endl;
 		int rv = LZ4_compress_default(packed_section_info.data(), (char*)&out_buf[0], packed_section_info.size(), compressed_size);
 		if (rv < 1)
 		{

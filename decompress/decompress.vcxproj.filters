@@ -18,8 +18,13 @@
     <ClCompile Include="decompress.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\LLVMStub\compress\lz4\lz4.c">
+    <ClCompile Include="..\LLVMStub\compress\quicklz.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\LLVMStub\compress\quicklz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

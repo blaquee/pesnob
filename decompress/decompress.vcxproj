@@ -137,8 +137,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\LLVMStub\compress\lz4\lz4.c" />
+    <ClCompile Include="..\LLVMStub\compress\quicklz.c" />
     <ClCompile Include="decompress.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\LLVMStub\compress\quicklz.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
