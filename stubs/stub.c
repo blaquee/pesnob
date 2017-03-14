@@ -55,7 +55,7 @@
 		//Get api's needed to bootstrap
 		pe_file_info* peinfo = (pe_file_info*)conf;
 
-		entrypoint(&conf, &res);
+		entrypoint(peinfo, &res);
 		results *ress = (results*)res;
 		if (!ress->continuable)
 		{
