@@ -22,7 +22,7 @@
     <ProjectGuid>{475EF6DD-8FF6-4CFD-86D4-E95FA2D596B0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LLVMStub</RootNamespace>
-    <ProjectName>Allspark</ProjectName>
+    <ProjectName>pesnob</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
